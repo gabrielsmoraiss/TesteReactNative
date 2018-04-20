@@ -6,6 +6,7 @@ import {
   Text,
   View,
   TouchableOpacity,
+  AsyncStorage,
 } from 'react-native';
 
 import Repo from './components/Repo';
@@ -16,19 +17,35 @@ export default class App extends Component<Props> {
   state = {
     modalVisible: false,
     repos: [
-      {
-        id: 1,
-        thumbnail: 'https://www.subaru.ca/content/7907/media/General/thumbnail/1048_3603.png',
-        title: 'Subaru wrx STI 2019',
-        author: 'Subaru ',
-      },
-      {
-        id: 2,
-        thumbnail: 'https://www.subaru.ca/content/7907/media/General/thumbnail/1048_3603.png',
-        title: 'Subaru WRX 2019',
-        author: 'Subaru',
-      },
-    ]
+    ],
+  };
+
+  async componentDidMount() {
+    const repos = JSON.parse(await AsyncStorage.getItem('@Minicurso:repositories')) || [];
+
+    this.setState({ repos })
+  };
+
+  _addRepository = async (newRepoText) => {
+    const repoCall = await fetch(`http://api.github.com/repos/${newRepoText}`);
+    const response = await repoCall.json();
+
+    const repository = {
+      id: response.id,
+      thumbnail: response.owner.avatar_url,
+      title: response.name,
+      author: response.owner.login,
+    };
+
+    this.setState({
+      modalVisible: false,
+      repos: [
+        ...this.state.repos,
+        repository,
+      ],
+    });
+
+    await AsyncStorage.setItem('@Minicurso:repositories', JSON.stringify(this.state.repos));
   };
 
   render() {
@@ -45,7 +62,11 @@ export default class App extends Component<Props> {
           { this.state.repos.map(repo => <Repo key={repo.id} data={repo} />) }
         </ScrollView>
 
-        <NewRepoModal visible={this.state.modalVisible} onCancel={() => {this.setState({ modalVisible: false })}}/>
+        <NewRepoModal
+          onCancel={() => {this.setState({ modalVisible: false })}}
+          visible={this.state.modalVisible}
+          onAdd={this._addRepository}
+        />
       </View>
     );
   }

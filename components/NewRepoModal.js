@@ -9,9 +9,12 @@ import { View,
 } from 'react-native';
 
 export default class NewRepoModal extends Component {
+  state = {
+    newRepoText: '',
+  };
   render() {
     return (
-      <Modal animationType="fade" transparent={true} visible={this.props.visible}>
+      <Modal animationType="fade" transparent={true} visible={this.props.visible} onRequestClose={() => null}>
         <View style={styles.modalContainer}>
           <View style={styles.boxContainer}>
             <Text style={styles.boxTitle}>Adicionar repositório</Text>
@@ -21,19 +24,21 @@ export default class NewRepoModal extends Component {
               style={styles.boxInput}
               underlineColorAndroid="rgba(0,0,0,0)"
               placeholder="organização/repositorio"
+              value={this.state.newRepoText}
+              onChangeText={newRepoText => this.setState({ newRepoText })}
             />
             
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.button, styles.cancelButton]}
-                onPress={() => {this.props.onCancel}}
+                onPress={this.props.onCancel}
               >
                 <Text style={styles.buttonText}>Cancelar</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.button, styles.submitButton]}
-                onPress={() => {}}
+                onPress={() => this.props.onAdd(this.state.newRepoText)}
               >
                 <Text style={styles.buttonText}>Adicionar</Text>
               </TouchableOpacity>
@@ -95,7 +100,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
 
-  submirButton: {
+  submitButton: {
     backgroundColor: '#70BD85',
     marginLeft: 5,
   },
